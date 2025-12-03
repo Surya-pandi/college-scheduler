@@ -2,7 +2,7 @@ const express = require("express")
 const initSqlJs = require("sql.js")
 const fs = require("fs")
 const path = require("path")
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcryptjs") // Replaced bcrypt with bcryptjs for Render compatibility
 const jwt = require("jsonwebtoken")
 const cors = require("cors")
 require("dotenv").config()
