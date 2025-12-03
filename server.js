@@ -281,6 +281,32 @@ function setupRoutes() {
     }
   })
 
+  app.delete("/api/staff/:id", authenticateToken, authorizeRole("admin"), (req, res) => {
+    const { id } = req.params
+
+    try {
+      // First get the user_id to delete the user record
+      const staffResult = db.exec(`SELECT user_id FROM staff_members WHERE id = ?`, [id])
+
+      if (!staffResult || staffResult.length === 0 || staffResult[0].values.length === 0) {
+        return res.status(404).json({ message: "Staff member not found" })
+      }
+
+      const user_id = staffResult[0].values[0][0]
+
+      // Delete staff member record
+      db.run(`DELETE FROM staff_members WHERE id = ?`, [id])
+
+      // Delete user record
+      db.run(`DELETE FROM users WHERE id = ?`, [user_id])
+
+      saveDatabase()
+      res.json({ message: "Staff member deleted successfully" })
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting staff", error: error.message })
+    }
+  })
+
   // Timetable Routes
   app.post("/api/timetable", authenticateToken, authorizeRole("admin"), (req, res) => {
     const { staff_id, day_of_week, start_time, end_time, subject, room } = req.body
