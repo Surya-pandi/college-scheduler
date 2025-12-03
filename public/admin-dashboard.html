@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Staff Scheduler</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 24px;
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    .sidebar {
+      width: 250px;
+      background: white;
+      border-right: 1px solid #e0e0e0;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-item {
+      padding: 15px 30px;
+      cursor: pointer;
+      border-left: 4px solid transparent;
+      transition: all 0.3s;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .sidebar-item:hover {
+      background: #f5f5f5;
+      border-left-color: #667eea;
+      color: #667eea;
+    }
+
+    .sidebar-item.active {
+      background: #f5f5f5;
+      border-left-color: #667eea;
+      color: #667eea;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .page-title {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+
+    .form-section {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #f5f5f5;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .action-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 5px;
+      transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+      background: #764ba2;
+    }
+
+    .action-btn.delete {
+      background: #e74c3c;
+    }
+
+    .action-btn.delete:hover {
+      background: #c0392b;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: #f39c12;
+      color: white;
+    }
+
+    .status-approved {
+      background: #27ae60;
+      color: white;
+    }
+
+    .status-rejected {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        overflow-x: auto;
+      }
+
+      .sidebar-item {
+        padding: 15px 20px;
+        white-space: nowrap;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Admin Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="sidebar-item active" onclick="switchPage('dashboard')">📊 Dashboard</div>
+      <div class="sidebar-item" onclick="switchPage('addStaff')">👥 Add Staff</div>
+      <div class="sidebar-item" onclick="switchPage('manageTimetable')">📚 Manage Timetable</div>
+      <div class="sidebar-item" onclick="switchPage('leaveRequests')">📋 Leave Requests</div>
+      <div class="sidebar-item" onclick="switchPage('scheduling')">🔄 Auto Scheduling</div>
+    </div>
+
+    <div class="main-content">
+      <!-- Dashboard Page -->
+      <div id="dashboard" class="page active">
+        <h2 class="page-title">Dashboard Overview</h2>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+          <div class="form-section">
+            <h3 style="margin-bottom: 10px;">Total Staff</h3>
+            <p id="totalStaff" style="font-size: 32px; color: #667eea; font-weight: bold;">-</p>
+          </div>
+          <div class="form-section">
+            <h3 style="margin-bottom: 10px;">On Leave Today</h3>
+            <p id="onLeaveToday" style="font-size: 32px; color: #f39c12; font-weight: bold;">-</p>
+          </div>
+          <div class="form-section">
+            <h3 style="margin-bottom: 10px;">Pending Requests</h3>
+            <p id="pendingRequests" style="font-size: 32px; color: #e74c3c; font-weight: bold;">-</p>
+          </div>
+          <div class="form-section">
+            <h3 style="margin-bottom: 10px;">Scheduled Classes</h3>
+            <p id="scheduledClasses" style="font-size: 32px; color: #27ae60; font-weight: bold;">-</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Staff Page -->
+      <div id="addStaff" class="page">
+        <h2 class="page-title">Add New Staff Member</h2>
+        <div id="staffMessage" class="message"></div>
+        <div class="form-section">
+          <div class="form-group">
+            <label for="staffName">Full Name</label>
+            <input type="text" id="staffName" placeholder="Enter staff name">
+          </div>
+          <div class="form-group">
+            <label for="staffEmail">Email</label>
+            <input type="email" id="staffEmail" placeholder="staff@college.edu">
+          </div>
+          <div class="form-group">
+            <label for="staffPassword">Password</label>
+            <input type="password" id="staffPassword" placeholder="Set initial password">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="staffDesignation">Designation</label>
+              <input type="text" id="staffDesignation" placeholder="e.g., Assistant Professor">
+            </div>
+            <div class="form-group">
+              <label for="staffPhone">Phone Number</label>
+              <input type="tel" id="staffPhone" placeholder="+91 9876543210">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="staffSpecialization">Specialization</label>
+            <input type="text" id="staffSpecialization" placeholder="e.g., Data Science">
+          </div>
+          <button onclick="addStaff()">Add Staff Member</button>
+        </div>
+
+        <h3 style="margin-top: 40px; margin-bottom: 20px;">Current Staff Members</h3>
+        <div class="table-container">
+          <table id="staffTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Designation</th>
+                <th>Phone</th>
+                <th>Specialization</th>
+              </tr>
+            </thead>
+            <tbody id="staffTableBody">
+              <tr><td colspan="5" style="text-align: center; color: #999;">Loading staff...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Manage Timetable Page -->
+      <div id="manageTimetable" class="page">
+        <h2 class="page-title">Manage Timetable</h2>
+        <div id="timetableMessage" class="message"></div>
+        <div class="form-section">
+          <div class="form-group">
+            <label for="timetableStaff">Select Staff Member</label>
+            <select id="timetableStaff">
+              <option value="">Choose a staff member...</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dayOfWeek">Day of Week</label>
+              <select id="dayOfWeek">
+                <option value="">Select day</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject/Course</label>
+              <input type="text" id="subject" placeholder="e.g., Data Structures">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startTime">Start Time</label>
+              <input type="time" id="startTime">
+            </div>
+            <div class="form-group">
+              <label for="endTime">End Time</label>
+              <input type="time" id="endTime">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="room">Room Number</label>
+            <input type="text" id="room" placeholder="e.g., 101-A">
+          </div>
+          <button onclick="addTimetableEntry()">Add Timetable Entry</button>
+        </div>
+
+        <h3 style="margin-top: 40px; margin-bottom: 20px;">Weekly Schedule</h3>
+        <div class="table-container">
+          <table id="timetableTable">
+            <thead>
+              <tr>
+                <th>Staff Name</th>
+                <th>Day</th>
+                <th>Subject</th>
+                <th>Time</th>
+                <th>Room</th>
+              </tr>
+            </thead>
+            <tbody id="timetableTableBody">
+              <tr><td colspan="5" style="text-align: center; color: #999;">Loading timetable...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Leave Requests Page -->
+      <div id="leaveRequests" class="page">
+        <h2 class="page-title">Leave Requests</h2>
+        <div class="table-container">
+          <table id="leaveTable">
+            <thead>
+              <tr>
+                <th>Staff Name</th>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="leaveTableBody">
+              <tr><td colspan="6" style="text-align: center; color: #999;">Loading leave requests...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Auto Scheduling Page -->
+      <div id="scheduling" class="page">
+        <h2 class="page-title">Automatic Staff Scheduling</h2>
+        <div id="schedulingMessage" class="message"></div>
+        <div class="form-section">
+          <h3 style="margin-bottom: 20px;">Find Replacement Staff</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="replaceStaff">Original Staff</label>
+              <select id="replaceStaff">
+                <option value="">Select staff member...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="replaceDate">Date</label>
+              <input type="date" id="replaceDate">
+            </div>
+          </div>
+          <button onclick="findReplacement()">Find Replacement</button>
+        </div>
+
+        <div id="replacementResults" class="form-section" style="display: none;">
+          <h3 style="margin-bottom: 20px;">Available Replacements</h3>
+          <div class="table-container">
+            <table id="replacementTable">
+              <thead>
+                <tr>
+                  <th>Staff Name</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="replacementTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 40px; margin-bottom: 20px;">Scheduled Replacements</h3>
+        <div class="table-container">
+          <table id="replacementsHistoryTable">
+            <thead>
+              <tr>
+                <th>Original Staff</th>
+                <th>Replacement Staff</th>
+                <th>Date</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="replacementsHistoryBody">
+              <tr><td colspan="4" style="text-align: center; color: #999;">No replacements scheduled</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+    let currentUser = null;
+    let selectedReplacementData = null;
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/index.html';
+    }
+
+    function switchPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(page).classList.add('active');
+
+      document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (page === 'addStaff') loadStaffList();
+      if (page === 'manageTimetable') {
+        loadStaffForTimetable();
+        loadTimetableList();
+      }
+      if (page === 'leaveRequests') loadLeaveRequests();
+      if (page === 'scheduling') {
+        loadStaffForReplacement();
+        loadReplacements();
+      }
+      if (page === 'dashboard') loadDashboard();
+    }
+
+    async function loadDashboard() {
+      try {
+        const staffRes = await fetch(`${API_BASE}/staff`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const staff = await staffRes.json();
+        document.getElementById('totalStaff').textContent = staff.length;
+
+        const leaveRes = await fetch(`${API_BASE}/leave`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const leaves = await leaveRes.json();
+        const today = new Date().toISOString().split('T')[0];
+        const onLeave = leaves.filter(l => l.status === 'approved' && l.start_date <= today && l.end_date >= today).length;
+        document.getElementById('onLeaveToday').textContent = onLeave;
+
+        const pending = leaves.filter(l => l.status === 'pending').length;
+        document.getElementById('pendingRequests').textContent = pending;
+
+        const timetableRes = await fetch(`${API_BASE}/timetable-all`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const timetable = await timetableRes.json();
+        document.getElementById('scheduledClasses').textContent = timetable.length;
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+      }
+    }
+
+    async function addStaff() {
+      const name = document.getElementById('staffName').value;
+      const email = document.getElementById('staffEmail').value;
+      const password = document.getElementById('staffPassword').value;
+      const designation = document.getElementById('staffDesignation').value;
+      const phone = document.getElementById('staffPhone').value;
+      const specialization = document.getElementById('staffSpecialization').value;
+
+      if (!name || !email || !password || !designation) {
+        showMessage('staffMessage', 'Please fill in all required fields', 'error');
+        return;
+      }
+
+      try {
+        // First register the user
+        const regRes = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, email, password,
+            role: 'staff',
+            department: 'General'
+          })
+        });
+
+        if (!regRes.ok) {
+          const error = await regRes.json();
+          showMessage('staffMessage', error.message, 'error');
+          return;
+        }
+
+        const regData = await regRes.json();
+
+        // Then add staff details
+        const staffRes = await fetch(`${API_BASE}/staff`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({
+            user_id: regData.userId,
+            designation, phone, specialization
+          })
+        });
+
+        if (staffRes.ok) {
+          showMessage('staffMessage', 'Staff member added successfully!', 'success');
+          document.getElementById('staffName').value = '';
+          document.getElementById('staffEmail').value = '';
+          document.getElementById('staffPassword').value = '';
+          document.getElementById('staffDesignation').value = '';
+          document.getElementById('staffPhone').value = '';
+          document.getElementById('staffSpecialization').value = '';
+          loadStaffList();
+        }
+      } catch (error) {
+        showMessage('staffMessage', 'Error: ' + error.message, 'error');
+      }
+    }
+
+    async function loadStaffList() {
+      try {
+        const res = await fetch(`${API_BASE}/staff`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const staff = await res.json();
+        const tbody = document.getElementById('staffTableBody');
+        tbody.innerHTML = '';
+
+        staff.forEach(s => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${s.name}</td>
+              <td>${s.email}</td>
+              <td>${s.designation || '-'}</td>
+              <td>${s.phone || '-'}</td>
+              <td>${s.specialization || '-'}</td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        console.error('Error loading staff list:', error);
+      }
+    }
+
+    async function loadStaffForTimetable() {
+      try {
+        const res = await fetch(`${API_BASE}/staff`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const staff = await res.json();
+        const select = document.getElementById('timetableStaff');
+        select.innerHTML = '<option value="">Choose a staff member...</option>';
+        staff.forEach(s => {
+          select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+        });
+      } catch (error) {
+        console.error('Error loading staff:', error);
+      }
+    }
+
+    async function addTimetableEntry() {
+      const staffId = document.getElementById('timetableStaff').value;
+      const day = document.getElementById('dayOfWeek').value;
+      const subject = document.getElementById('subject').value;
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+      const room = document.getElementById('room').value;
+
+      if (!staffId || !day || !subject || !startTime || !endTime) {
+        showMessage('timetableMessage', 'Please fill in all required fields', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/timetable`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({
+            staff_id: staffId,
+            day_of_week: day,
+            subject, start_time: startTime,
+            end_time: endTime, room
+          })
+        });
+
+        if (res.ok) {
+          showMessage('timetableMessage', 'Timetable entry added successfully!', 'success');
+          document.getElementById('timetableStaff').value = '';
+          document.getElementById('dayOfWeek').value = '';
+          document.getElementById('subject').value = '';
+          document.getElementById('startTime').value = '';
+          document.getElementById('endTime').value = '';
+          document.getElementById('room').value = '';
+          loadTimetableList();
+        }
+      } catch (error) {
+        showMessage('timetableMessage', 'Error: ' + error.message, 'error');
+      }
+    }
+
+    async function loadTimetableList() {
+      try {
+        const res = await fetch(`${API_BASE}/timetable-all`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const timetable = await res.json();
+        const tbody = document.getElementById('timetableTableBody');
+        tbody.innerHTML = '';
+
+        timetable.forEach(t => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${t.name}</td>
+              <td>${t.day_of_week}</td>
+              <td>${t.subject}</td>
+              <td>${t.start_time} - ${t.end_time}</td>
+              <td>${t.room}</td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        console.error('Error loading timetable:', error);
+      }
+    }
+
+    async function loadLeaveRequests() {
+      try {
+        const res = await fetch(`${API_BASE}/leave`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const leaves = await res.json();
+        const tbody = document.getElementById('leaveTableBody');
+        tbody.innerHTML = '';
+
+        leaves.forEach(l => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${l.name || 'Staff Member'}</td>
+              <td>${l.start_date}</td>
+              <td>${l.end_date}</td>
+              <td>${l.reason || '-'}</td>
+              <td><span class="status-badge status-${l.status}">${l.status}</span></td>
+              <td>
+                ${l.status === 'pending' ? `
+                  <button class="action-btn" onclick="approveLeave(${l.id})">Approve</button>
+                  <button class="action-btn delete" onclick="rejectLeave(${l.id})">Reject</button>
+                ` : '-'}
+              </td>
+            </tr>
+          `;
+        });
+      } catch (error) {
+        console.error('Error loading leave requests:', error);
+      }
+    }
+
+    async function approveLeave(leaveId) {
+      try {
+        const res = await fetch(`${API_BASE}/leave/${leaveId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ status: 'approved' })
+        });
+
+        if (res.ok) {
+          loadLeaveRequests();
+          alert('Leave approved successfully!');
+        }
+      } catch (error) {
+        console.error('Error approving leave:', error);
+      }
+    }
+
+    async function rejectLeave(leaveId) {
+      try {
+        const res = await fetch(`${API_BASE}/leave/${leaveId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ status: 'rejected' })
+        });
+
+        if (res.ok) {
+          loadLeaveRequests();
+          alert('Leave rejected!');
+        }
+      } catch (error) {
+        console.error('Error rejecting leave:', error);
+      }
+    }
+
+    async function loadStaffForReplacement() {
+      try {
+        const res = await fetch(`${API_BASE}/staff`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const staff = await res.json();
+        const select = document.getElementById('replaceStaff');
+        select.innerHTML = '<option value="">Select staff member...</option>';
+        staff.forEach(s => {
+          select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+        });
+      } catch (error) {
+        console.error('Error loading staff:', error);
+      }
+    }
+
+    async function findReplacement() {
+      const staffId = document.getElementById('replaceStaff').value;
+      const date = document.getElementById('replaceDate').value;
+
+      if (!staffId || !date) {
+        showMessage('schedulingMessage', 'Please select staff and date', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/find-replacement`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ staff_id: staffId, date })
+        });
+
+        const data = await res.json();
+        selectedReplacementData = { staffId, date };
+
+        const tbody = document.getElementById('replacementTableBody');
+        tbody.innerHTML = '';
+
+        if (data.available_staff && data.available_staff.length > 0) {
+          data.available_staff.forEach(staff => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${staff.name}</td>
+                <td>
+                  <button class="action-btn" onclick="scheduleReplacement(${staff.id})">Assign</button>
+                </td>
+              </tr>
+            `;
+          });
+          document.getElementById('replacementResults').style.display = 'block';
+        } else {
+          tbody.innerHTML = '<tr><td colspan="2" style="text-align: center;">No available staff</td></tr>';
+          document.getElementById('replacementResults').style.display = 'block';
+        }
+      } catch (error) {
+        showMessage('schedulingMessage', 'Error: ' + error.message, 'error');
+      }
+    }
+
+    async function scheduleReplacement(replacementStaffId) {
+      if (!selectedReplacementData) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/replacement`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({
+            original_staff_id: selectedReplacementData.staffId,
+            replacement_staff_id: replacementStaffId,
+            timetable_id: 1,
+            replacement_date: selectedReplacementData.date,
+            reason: 'Automatic scheduling for leave'
+          })
+        });
+
+        if (res.ok) {
+          showMessage('schedulingMessage', 'Replacement scheduled successfully!', 'success');
+          loadReplacements();
+          document.getElementById('replaceStaff').value = '';
+          document.getElementById('replaceDate').value = '';
+          document.getElementById('replacementResults').style.display = 'none';
+        }
+      } catch (error) {
+        showMessage('schedulingMessage', 'Error: ' + error.message, 'error');
+      }
+    }
+
+    async function loadReplacements() {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const res = await fetch(`${API_BASE}/replacements/${today}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const replacements = await res.json();
+        const tbody = document.getElementById('replacementsHistoryBody');
+        tbody.innerHTML = '';
+
+        if (replacements.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No replacements scheduled</td></tr>';
+        } else {
+          replacements.forEach(r => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${r.original_staff}</td>
+                <td>${r.replacement_staff}</td>
+                <td>${r.replacement_date}</td>
+                <td>${r.reason || '-'}</td>
+              </tr>
+            `;
+          });
+        }
+      } catch (error) {
+        console.error('Error loading replacements:', error);
+      }
+    }
+
+    function showMessage(elementId, message, type) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.className = `message show ${type}`;
+      setTimeout(() => {
+        element.classList.remove('show');
+      }, 5000);
+    }
+
+    // Load data on page load
+    window.addEventListener('load', () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || user.role !== 'admin') {
+        window.location.href = '/index.html';
+      }
+      currentUser = user;
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

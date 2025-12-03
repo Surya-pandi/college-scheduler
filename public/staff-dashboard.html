@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Dashboard - Staff Scheduler</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 24px;
+    }
+
+    .user-info {
+      text-align: right;
+    }
+
+    .user-info p {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    .sidebar {
+      width: 250px;
+      background: white;
+      border-right: 1px solid #e0e0e0;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-item {
+      padding: 15px 30px;
+      cursor: pointer;
+      border-left: 4px solid transparent;
+      transition: all 0.3s;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .sidebar-item:hover {
+      background: #f5f5f5;
+      border-left-color: #667eea;
+      color: #667eea;
+    }
+
+    .sidebar-item.active {
+      background: #f5f5f5;
+      border-left-color: #667eea;
+      color: #667eea;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .page-title {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+
+    .form-section {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #f5f5f5;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .schedule-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .schedule-card h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .schedule-card p {
+      font-size: 14px;
+      margin: 5px 0;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: #f39c12;
+      color: white;
+    }
+
+    .status-approved {
+      background: #27ae60;
+      color: white;
+    }
+
+    .status-rejected {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .status-present {
+      background: #27ae60;
+      color: white;
+    }
+
+    .status-absent {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .info-box h4 {
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+
+    .info-box p {
+      color: #555;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        overflow-x: auto;
+      }
+
+      .sidebar-item {
+        padding: 15px 20px;
+        white-space: nowrap;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Staff Dashboard</h1>
+    <div class="user-info">
+      <p id="welcomeText">Welcome</p>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="sidebar-item active" onclick="switchPage('schedule')">📅 My Schedule</div>
+      <div class="sidebar-item" onclick="switchPage('attendance')">✅ Mark Attendance</div>
+      <div class="sidebar-item" onclick="switchPage('leave')">📋 Apply Leave</div>
+      <div class="sidebar-item" onclick="switchPage('leaveStatus')">📊 Leave Status</div>
+    </div>
+
+    <div class="main-content">
+      <!-- My Schedule Page -->
+      <div id="schedule" class="page active">
+        <h2 class="page-title">My Weekly Schedule</h2>
+        <div class="info-box">
+          <h4>Your Schedule</h4>
+          <p>Below is your assigned timetable for the week. Check back regularly for any updates or replacements.</p>
+        </div>
+        <div id="scheduleContainer">
+          <p style="text-align: center; color: #999;">Loading schedule...</p>
+        </div>
+      </div>
+
+      <!-- Mark Attendance Page -->
+      <div id="attendance" class="page">
+        <h2 class="page-title">Mark Attendance</h2>
+        <div id="attendanceMessage" class="message"></div>
+        <div class="form-section">
+          <div class="info-box">
+            <h4>Mark Your Attendance</h4>
+            <p>Mark your daily attendance status. This will be recorded in your attendance record.</p>
+          </div>
+          <div class="form-group">
+            <label for="attendanceDate">Date</label>
+            <input type="date" id="attendanceDate">
+          </div>
+          <div class="form-group">
+            <label for="attendanceStatus">Status</label>
+            <select id="attendanceStatus">
+              <option value="">Select status</option>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="leave">On Leave</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="attendanceRemarks">Remarks (Optional)</label>
+            <textarea id="attendanceRemarks" placeholder="Add any remarks..."></textarea>
+          </div>
+          <button onclick="markAttendance()">Mark Attendance</button>
+        </div>
+
+        <h3 style="margin-top: 40px; margin-bottom: 20px;">Your Attendance Record</h3>
+        <div class="table-container">
+          <table id="attendanceTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTableBody">
+              <tr><td colspan="3" style="text-align: center; color: #999;">Loading attendance records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Apply Leave Page -->
+      <div id="leave" class="page">
+        <h2 class="page-title">Apply for Leave</h2>
+        <div id="leaveMessage" class="message"></div>
+        <div class="form-section">
+          <div class="info-box">
+            <h4>Submit Leave Request</h4>
+            <p>Submit your leave request here. Your admin will review and approve or reject your request.</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="leaveStartDate">From Date</label>
+              <input type="date" id="leaveStartDate" required>
+            </div>
+            <div class="form-group">
+              <label for="leaveEndDate">To Date</label>
+              <input type="date" id="leaveEndDate" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="leaveReason">Reason for Leave</label>
+            <textarea id="leaveReason" placeholder="Explain the reason for your leave..." required></textarea>
+          </div>
+          <button onclick="applyLeave()">Submit Leave Request</button>
+        </div>
+      </div>
+
+      <!-- Leave Status Page -->
+      <div id="leaveStatus" class="page">
+        <h2 class="page-title">Leave Requests Status</h2>
+        <div class="table-container">
+          <table id="leaveStatusTable">
+            <thead>
+              <tr>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Days</th>
+              </tr>
+            </thead>
+            <tbody id="leaveStatusTableBody">
+              <tr><td colspan="5" style="text-align: center; color: #999;">Loading leave requests...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+    let currentUser = null;
+    let staffId = null;
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/index.html';
+    }
+
+    function switchPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(page).classList.add('active');
+
+      document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (page === 'schedule') loadSchedule();
+      if (page === 'attendance') loadAttendance();
+      if (page === 'leaveStatus') loadLeaveStatus();
+    }
+
+    async function loadSchedule() {
+      try {
+        const res = await fetch(`${API_BASE}/timetable/${staffId}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const timetable = await res.json();
+        const container = document.getElementById('scheduleContainer');
+
+        if (timetable.length === 0) {
+          container.innerHTML = '<p style="text-align: center; color: #999;">No schedule assigned yet.</p>';
+        } else {
+          container.innerHTML = '';
+          timetable.forEach(slot => {
+            container.innerHTML += `
+              <div class="schedule-card">
+                <h3>${slot.subject}</h3>
+                <p><strong>Day:</strong> ${slot.day_of_week}</p>
+                <p><strong>Time:</strong> ${slot.start_time} - ${slot.end_time}</p>
+                <p><strong>Room:</strong> ${slot.room}</p>
+              </div>
+            `;
+          });
+        }
+      } catch (error) {
+        console.error('Error loading schedule:', error);
+      }
+    }
+
+    async function markAttendance() {
+      const date = document.getElementById('attendanceDate').value;
+      const status = document.getElementById('attendanceStatus').value;
+      const remarks = document.getElementById('attendanceRemarks').value;
+
+      if (!date || !status) {
+        showMessage('attendanceMessage', 'Please fill in all required fields', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/attendance`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({
+            staff_id: staffId,
+            date, status, remarks
+          })
+        });
+
+        if (res.ok) {
+          showMessage('attendanceMessage', 'Attendance marked successfully!', 'success');
+          document.getElementById('attendanceDate').value = '';
+          document.getElementById('attendanceStatus').value = '';
+          document.getElementById('attendanceRemarks').value = '';
+          loadAttendance();
+        }
+      } catch (error) {
+        showMessage('attendanceMessage', 'Error: ' + error.message, 'error');
+      }
+    }
+
+    async function loadAttendance() {
+      try {
+        const res = await fetch(`${API_BASE}/attendance/${staffId}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const attendance = await res.json();
+        const tbody = document.getElementById('attendanceTableBody');
+        tbody.innerHTML = '';
+
+        if (attendance.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No attendance records yet</td></tr>';
+        } else {
+          attendance.forEach(a => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${a.date}</td>
+                <td><span class="status-badge status-${a.status}">${a.status}</span></td>
+                <td>${a.remarks || '-'}</td>
+              </tr>
+            `;
+          });
+        }
+      } catch (error) {
+        console.error('Error loading attendance:', error);
+      }
+    }
+
+    async function applyLeave() {
+      const startDate = document.getElementById('leaveStartDate').value;
+      const endDate = document.getElementById('leaveEndDate').value;
+      const reason = document.getElementById('leaveReason').value;
+
+      if (!startDate || !endDate || !reason) {
+        showMessage('leaveMessage', 'Please fill in all fields', 'error');
+        return;
+      }
+
+      if (new Date(startDate) > new Date(endDate)) {
+        showMessage('leaveMessage', 'End date must be after start date', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/leave`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({
+            staff_id: staffId,
+            start_date: startDate,
+            end_date: endDate,
+            reason
+          })
+        });
+
+        if (res.ok) {
+          showMessage('leaveMessage', 'Leave request submitted successfully!', 'success');
+          document.getElementById('leaveStartDate').value = '';
+          document.getElementById('leaveEndDate').value = '';
+          document.getElementById('leaveReason').value = '';
+          setTimeout(() => switchPage('leaveStatus'), 1500);
+        }
+      } catch (error) {
+        showMessage('leaveMessage', 'Error: ' + error.message, 'error');
+      }
+    }
+
+    async function loadLeaveStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/leave`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const leaves = await res.json();
+        const tbody = document.getElementById('leaveStatusTableBody');
+        tbody.innerHTML = '';
+
+        if (leaves.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No leave requests</td></tr>';
+        } else {
+          leaves.forEach(l => {
+            const start = new Date(l.start_date);
+            const end = new Date(l.end_date);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+            tbody.innerHTML += `
+              <tr>
+                <td>${l.start_date}</td>
+                <td>${l.end_date}</td>
+                <td>${l.reason}</td>
+                <td><span class="status-badge status-${l.status}">${l.status}</span></td>
+                <td>${days}</td>
+              </tr>
+            `;
+          });
+        }
+      } catch (error) {
+        console.error('Error loading leave status:', error);
+      }
+    }
+
+    function showMessage(elementId, message, type) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.className = `message show ${type}`;
+      setTimeout(() => {
+        element.classList.remove('show');
+      }, 5000);
+    }
+
+    window.addEventListener('load', async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || user.role !== 'staff') {
+        window.location.href = '/index.html';
+      }
+      currentUser = user;
+      document.getElementById('welcomeText').textContent = `Welcome, ${user.name}!`;
+
+      // Get staff ID from API
+      try {
+        const staffRes = await fetch(`${API_BASE}/staff`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const staffList = await staffRes.json();
+        const userStaff = staffList.find(s => s.email === user.email);
+        if (userStaff) {
+          staffId = userStaff.id;
+          loadSchedule();
+        }
+      } catch (error) {
+        console.error('Error fetching staff ID:', error);
+      }
+    });
+  </script>
+</body>
+</html>
